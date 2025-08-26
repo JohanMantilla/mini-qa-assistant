@@ -1,8 +1,9 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from rank_bm25 import BM25Okapi
 import numpy as np
+import re
 
-from app.utils.text_utils import clean_text, split_into_chunks
+from app.utils.text_utils import clean_text, split_into_chunks, extract_sentences
 
 class DocumentService:
     """Servicio para indexar y buscar en documentos usando BM25"""
@@ -12,7 +13,7 @@ class DocumentService:
         self.chunks = []  
         self.chunk_metadata = []  
         self.tokenized_chunks = []  
-        self.bm25 = None 
+        self.bm25 = None  
         
     def add_document(self, filename: str, text: str):
         cleaned_text = clean_text(text)
@@ -20,7 +21,7 @@ class DocumentService:
         self.documents[filename] = cleaned_text
 
         doc_chunks = split_into_chunks(cleaned_text, chunk_size=300, overlap=100)
-
+        
         for chunk in doc_chunks:
             if len(chunk.strip()) > 20:  
                 self.chunks.append(chunk)
@@ -30,7 +31,6 @@ class DocumentService:
                 })
     
     def _tokenize(self, text: str) -> List[str]:
-        
         text_lower = text.lower()
         tokens = text_lower.replace(',', ' ').replace('.', ' ').replace('!', ' ').replace('?', ' ').split()
         return [token for token in tokens if len(token) > 2]
@@ -40,7 +40,7 @@ class DocumentService:
             return
         
         self.tokenized_chunks = [self._tokenize(chunk) for chunk in self.chunks]
-        
+
         self.bm25 = BM25Okapi(self.tokenized_chunks, k1=1.2, b=0.75)
     
     def search(self, query: str, top_k: int = 5, min_score: float = 0.25) -> List[Dict]:
@@ -66,6 +66,45 @@ class DocumentService:
                 })
         return results
     
+    def answer_question(self, question: str) -> Tuple[str, List[Dict]]:
+        search_results = self.search(question, top_k=5, min_score=0.15)
+        if not search_results:
+            return "No encuentro esa información en los documentos cargados.", []
+
+        question_tokens = set(self._tokenize(clean_text(question)))
+        best_sentence = ""
+        best_score = 0
+        citations = []
+        for result in search_results[:3]:
+            sentences = re.split(r'(?<=[.!?])\s+', result['text'])
+            for sentence in sentences:
+                sentence_tokens = set(self._tokenize(sentence))
+                score = len(question_tokens & sentence_tokens)
+                if score > best_score and len(sentence) > 20:
+                    best_score = score
+                    best_sentence = sentence
+                    best_citation = {
+                        'text': sentence.strip(),
+                        'document_name': result['document_name']
+                    }
+            if len(citations) < 3 and sentences:
+                citations.append({
+                    'text': sentences[0].strip(),
+                    'document_name': result['document_name']
+                })
+
+        if best_sentence:
+            answer = best_sentence.strip()
+        else:
+            answer_parts = []
+            for i, result in enumerate(search_results[:2]):
+                sentences = extract_sentences(result['text'], num_sentences=2)
+                if sentences:
+                    answer_parts.append(sentences)
+            answer = " ".join(answer_parts) if answer_parts else "No encuentro información específica sobre esa pregunta en los documentos."
+
+        return answer, citations
+    
     def get_document_count(self) -> int:
         return len(self.documents)
     
@@ -79,4 +118,5 @@ class DocumentService:
         self.tokenized_chunks.clear()
         self.bm25 = None
 
+# Instancia global del servicio (singleton simple)
 document_service = DocumentService()
