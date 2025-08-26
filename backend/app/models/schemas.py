@@ -15,7 +15,19 @@ class SearchResponse(BaseModel):
     query: str
     results: List[SearchResult]
     total_results: int
-    
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=500)
+
+class Citation(BaseModel):
+    text: str
+    document_name: str
+
+class AskResponse(BaseModel):
+    question: str
+    answer: str
+    citations: List[Citation]
+
 class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
