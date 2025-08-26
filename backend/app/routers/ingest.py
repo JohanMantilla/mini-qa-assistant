@@ -14,10 +14,11 @@ async def ingest_documents(
     """
     Endpoint para cargar y procesar múltiples documentos.
     
-    Recibe entre 3 y 10 archivos (.txt o .pdf), los procesa y los almacena
-    para procesamiento posterior.
+    Recibe entre 3 y 10 archivos (.txt o .pdf), los procesa y los indexa en memoria
+    para búsquedas posteriores.
+
     """
-    
+    # Validar número de archivos
     if len(files) < 3:
         raise HTTPException(
             status_code=400,
@@ -41,7 +42,7 @@ async def ingest_documents(
             detail=f"Archivos con formato no permitido: {', '.join(invalid_files)}. Solo se aceptan archivos .txt y .pdf"
         )
     
-    document_service.clear_documents()
+    document_service.clear_index()
     
     processed_files = []
     errors = []
@@ -66,9 +67,11 @@ async def ingest_documents(
             detail=f"Se necesitan al menos 3 archivos válidos. Solo se procesaron {len(processed_files)}. Errores: {', '.join(errors)}"
         )
     
+    document_service.build_index()
+    
     message = f" Se procesaron {len(processed_files)} de {len(files)} archivos exitosamente"
     if errors:
-        message += f". Hubo errores en {len(errors)} archivo(s)"
+        message += f".  Hubo errores en {len(errors)} archivo(s)"
     
     return FileUploadResponse(
         message=message,

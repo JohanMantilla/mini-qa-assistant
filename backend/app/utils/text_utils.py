@@ -5,14 +5,9 @@ def clean_text(text: str) -> str:
     text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
     text = re.sub(r'[^\w\s.,;:!?¿¡\-()áéíóúñÁÉÍÓÚÑüÜ]', ' ', text)
     text = re.sub(r'\s+', ' ', text)
-    
     return text.strip()
 
 def split_into_chunks(text: str, chunk_size: int = 500, overlap: int = 150) -> List[str]:
-    """
-    Divide el texto en fragmentos agrupando oraciones hasta un tamaño máximo.
-    Evita cortar palabras y oraciones arbitrariamente.
-    """
     if not text:
         return []
 
