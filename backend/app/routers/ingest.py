@@ -16,9 +16,7 @@ async def ingest_documents(
     
     Recibe entre 3 y 10 archivos (.txt o .pdf), los procesa y los indexa en memoria
     para búsquedas posteriores.
-
     """
-    # Validar número de archivos
     if len(files) < 3:
         raise HTTPException(
             status_code=400,
