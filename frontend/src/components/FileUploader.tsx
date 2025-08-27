@@ -22,27 +22,54 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [testingConnection, setTestingConnection] = useState(false);
+    const [lastUploadTime, setLastUploadTime] = useState<number>(0);
+
+    const testBackendConnection = async () => {
+        setTestingConnection(true);
+        setError(null);
+
+        try {
+            await checkHealth();
+            setSuccess('✅ Conexión con el backend exitosa');
+        } catch (err: any) {
+            setError(`❌ No se puede conectar con el backend: ${err.message}`);
+        } finally {
+            setTestingConnection(false);
+        }
+    };
+
+    const validateFileSize = (file: File): boolean => {
+        const maxSizeMB = 10;
+        const maxSizeBytes = maxSizeMB * 1024 * 1024;
+        return file.size <= maxSizeBytes;
+    };
+
+    const validateMimeType = (file: File): boolean => {
+        const allowedMimeTypes = [
+            'text/plain',
+            'application/pdf'
+        ];
+        return allowedMimeTypes.includes(file.type);
+    };
+
+    const checkRateLimit = (): boolean => {
+        const now = Date.now();
+        const timeSinceLastUpload = now - lastUploadTime;
+        const minInterval = 10000; // 10 segundos entre uploads
+
+        return timeSinceLastUpload >= minInterval;
+    };
 
     const handleFiles = async (files: FileList) => {
         setError(null);
         setSuccess(null);
 
-        const allowedTypes = ['.txt', '.pdf'];
-        const invalidFiles: string[] = [];
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-            if (!allowedTypes.includes(extension)) {
-                invalidFiles.push(file.name);
-            }
-        }
-
-        if (invalidFiles.length > 0) {
-            setError(`Archivos con formato no válido: ${invalidFiles.join(', ')}. Solo se permiten .txt y .pdf`);
+        if (!checkRateLimit()) {
+            const remainingTime = Math.ceil((10000 - (Date.now() - lastUploadTime)) / 1000);
+            setError(`⏰ Por favor espera ${remainingTime} segundos antes de subir nuevos archivos`);
             return;
         }
-
 
         if (files.length < 3) {
             setError('Debe subir al menos 3 archivos');
@@ -54,7 +81,47 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             return;
         }
 
+        const invalidFiles: string[] = [];
+        const oversizedFiles: string[] = [];
+        const emptyFiles: string[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            if (!validateMimeType(file)) {
+                const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+                if (!['.txt', '.pdf'].includes(extension)) {
+                    invalidFiles.push(`${file.name} (tipo: ${file.type || 'desconocido'})`);
+                }
+            }
+
+            if (!validateFileSize(file)) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                oversizedFiles.push(`${file.name} (${sizeMB}MB)`);
+            }
+
+            if (file.size === 0) {
+                emptyFiles.push(file.name);
+            }
+        }
+
+        if (invalidFiles.length > 0) {
+            setError(`❌ Formato no válido: ${invalidFiles.join(', ')}. Solo se permiten archivos .txt y .pdf`);
+            return;
+        }
+
+        if (oversizedFiles.length > 0) {
+            setError(`📏 Archivos muy grandes: ${oversizedFiles.join(', ')}. Máximo 10MB por archivo`);
+            return;
+        }
+
+        if (emptyFiles.length > 0) {
+            setError(`📭 Archivos vacíos: ${emptyFiles.join(', ')}. Los archivos deben tener contenido`);
+            return;
+        }
+
         setUploading(true);
+        setLastUploadTime(Date.now());
 
         try {
             const response: UploadResponse = await uploadDocuments(files);
@@ -63,6 +130,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         } catch (err: any) {
             console.error('Error uploading files:', err);
             setError(err.message || 'Error al procesar los archivos');
+            setLastUploadTime(0);
         } finally {
             setUploading(false);
         }
@@ -102,7 +170,16 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
     return (
         <div className="file-uploader">
-            <h2>📁 Subir Documentos</h2>
+            <div className="uploader-header">
+                <h2>📁 Subir Documentos</h2>
+                <button
+                    className="test-connection-button"
+                    onClick={testBackendConnection}
+                    disabled={testingConnection}
+                >
+                    {testingConnection ? '⏳ Probando...' : '🔗 Probar conexión'}
+                </button>
+            </div>
 
             {indexedFiles.length === 0 ? (
                 <div className="upload-area">
