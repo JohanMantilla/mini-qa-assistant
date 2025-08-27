@@ -52,3 +52,7 @@ async def search_documents(
         results=search_results,
         total_results=len(search_results)
     )
+
+@router.get("/index/info")
+async def get_index_info():
+    return document_service.get_index_info()

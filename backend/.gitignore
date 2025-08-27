@@ -1,0 +1,30 @@
+# Bytecode de Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Logs de Python
+*.log
+
+# Archivos de persistencia (excluir si no son de prueba)
+*.json
+*.pkl
+*.index
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
