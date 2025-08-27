@@ -184,4 +184,4 @@ La aplicación permite:
 
 ---
 
-**Desarrollado con**: FastAPI, React, TypeScript, Docker, BM25, PyPDF2
+**Desarrollado con**: FastAPI, React + TypeScript (Vite + SWC), Docker, BM25
