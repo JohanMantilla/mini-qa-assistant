@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { uploadDocuments } from '../services/api';
+import { uploadDocuments, checkHealth } from '../services/api';
 
 interface FileUploaderProps {
     onDocumentsUploaded: (files: string[]) => void;
@@ -27,18 +27,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         setError(null);
         setSuccess(null);
 
-        // Validar número de archivos
-        if (files.length < 3) {
-            setError('Debe subir al menos 3 archivos');
-            return;
-        }
-
-        if (files.length > 10) {
-            setError('No puede subir más de 10 archivos');
-            return;
-        }
-
-        // Validar tipos de archivo
         const allowedTypes = ['.txt', '.pdf'];
         const invalidFiles: string[] = [];
 
@@ -52,6 +40,17 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
         if (invalidFiles.length > 0) {
             setError(`Archivos con formato no válido: ${invalidFiles.join(', ')}. Solo se permiten .txt y .pdf`);
+            return;
+        }
+
+
+        if (files.length < 3) {
+            setError('Debe subir al menos 3 archivos');
+            return;
+        }
+
+        if (files.length > 10) {
+            setError('No puede subir más de 10 archivos');
             return;
         }
 
@@ -176,5 +175,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         </div>
     );
 };
+
 
 export default FileUploader;
