@@ -1,61 +1,28 @@
-import React, { useState } from 'react';
-import { askQuestion } from '../services/api';
+import React from 'react';
+import { useQuestionAnswer } from '../hooks/useQuestionAnswer';
+import '../styles/qa.css';
 
-interface Citation {
-    text: string;
-    document_name: string;
-}
+export const QuestionAnswer: React.FC = () => {
+    const {
+        question,
+        setQuestion,
+        response,
+        asking,
+        error,
+        highlightedCitation,
+        submitQuestion,
+        handleCitationClick,
+        clearQuestion
+    } = useQuestionAnswer();
 
-interface AskResponse {
-    question: string;
-    answer: string;
-    citations: Citation[];
-}
-
-const QuestionAnswer: React.FC = () => {
-    const [question, setQuestion] = useState('');
-    const [response, setResponse] = useState<AskResponse | null>(null);
-    const [asking, setAsking] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [highlightedCitation, setHighlightedCitation] = useState<number | null>(null);
-
-    const handleAsk = async (e: React.FormEvent) => {
+    const handleAsk = (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!question.trim()) {
-            setError('Ingresa una pregunta');
-            return;
-        }
-
-        setAsking(true);
-        setError(null);
-        setResponse(null);
-
-        try {
-            const result: AskResponse = await askQuestion(question);
-            setResponse(result);
-        } catch (err: any) {
-            console.error('Error asking question:', err);
-            setError(err.message || 'Error al procesar la pregunta');
-        } finally {
-            setAsking(false);
-        }
-    };
-
-    const handleCitationClick = (index: number) => {
-        setHighlightedCitation(index === highlightedCitation ? null : index);
-    }
-
-    const handleClear = () => {
-        setQuestion('');
-        setResponse(null);
-        setError(null);
-        setHighlightedCitation(null);
+        submitQuestion(question);
     };
 
     return (
         <div className="question-answer">
-            <h2>❓ Preguntas y Respuestas</h2>
+            <h2>Preguntas y Respuestas</h2>
 
             <form onSubmit={handleAsk} className="question-form">
                 <div className="question-input-group">
@@ -74,16 +41,16 @@ const QuestionAnswer: React.FC = () => {
                             className="ask-button"
                             disabled={asking || !question.trim()}
                         >
-                            {asking ? '🤔 Pensando...' : '💭 Preguntar'}
+                            {asking ? 'Pensando...' : 'Preguntar'}
                         </button>
 
                         {(response || error) && (
                             <button
                                 type="button"
                                 className="clear-question-button"
-                                onClick={handleClear}
+                                onClick={clearQuestion}
                             >
-                                🗑️ Limpiar
+                                Limpiar
                             </button>
                         )}
                     </div>
@@ -96,7 +63,7 @@ const QuestionAnswer: React.FC = () => {
 
             {error && (
                 <div className="message error">
-                    <strong>❌ Error:</strong> {error}
+                    <strong>Error:</strong> {error}
                 </div>
             )}
 
@@ -110,12 +77,12 @@ const QuestionAnswer: React.FC = () => {
             {response && !asking && (
                 <div className="qa-response">
                     <div className="question-display">
-                        <h3>❓ Pregunta:</h3>
+                        <h3>Pregunta:</h3>
                         <p>"{response.question}"</p>
                     </div>
 
                     <div className="answer-display">
-                        <h3>💡 Respuesta:</h3>
+                        <h3>Respuesta:</h3>
                         <div className="answer-text">
                             {response.answer}
                         </div>
@@ -123,8 +90,8 @@ const QuestionAnswer: React.FC = () => {
 
                     {response.citations && response.citations.length > 0 && (
                         <div className="citations-display">
-                            <h3>📚 Fuentes:</h3>
-                            <p className="citations-hint">💡 Haz clic en una cita para resaltarla</p>
+                            <h3>Fuentes:</h3>
+                            <p className="citations-hint">Haz clic en una cita para resaltarla</p>
                             <div className="citations-list">
                                 {response.citations.map((citation, index) => (
                                     <div
@@ -134,8 +101,8 @@ const QuestionAnswer: React.FC = () => {
                                     >
                                         <div className="citation-header">
                                             <span className="citation-number">#{index + 1}</span>
-                                            <span className="citation-document">📄 {citation.document_name}</span>
-                                            <span className="citation-click-hint">👆 Clic para resaltar</span>
+                                            <span className="citation-document">{citation.document_name}</span>
+                                            <span className="citation-click-hint">Clic para resaltar</span>
                                         </div>
                                         <div className="citation-text">
                                             "{citation.text}"
@@ -150,5 +117,3 @@ const QuestionAnswer: React.FC = () => {
         </div>
     );
 };
-
-export default QuestionAnswer;

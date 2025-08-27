@@ -1,0 +1,225 @@
+.question-answer h2 {
+    margin-bottom: 20px;
+    color: #2c5282;
+}
+
+.question-form {
+    margin-bottom: 20px;
+}
+
+.question-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.question-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.3s ease;
+}
+
+.question-textarea:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.question-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ask-button,
+.clear-question-button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.ask-button {
+    background-color: #38a169;
+    color: white;
+}
+
+.ask-button:hover:not(:disabled) {
+    background-color: #2f855a;
+}
+
+.ask-button:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+}
+
+.clear-question-button {
+    background-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.clear-question-button:hover {
+    background-color: #cbd5e0;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+}
+
+.qa-response {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.question-display,
+.answer-display,
+.citations-display {
+    margin-bottom: 24px;
+}
+
+.question-display h3,
+.answer-display h3,
+.citations-display h3 {
+    color: #2c5282;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.question-display p {
+    color: #4a5568;
+    font-style: italic;
+}
+
+.answer-text {
+    background-color: #f0fff4;
+    border-left: 4px solid #38a169;
+    padding: 16px;
+    border-radius: 4px;
+    color: #2d3748;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.citations-display h3 {
+    color: #2c5282;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.citations-hint {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 16px;
+    font-style: italic;
+}
+
+.citations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.citation-item {
+    background-color: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.citation-item:hover {
+    border-color: #4299e1;
+    box-shadow: 0 2px 8px rgba(66, 153, 225, 0.15);
+    transform: translateY(-1px);
+}
+
+.citation-item.highlighted {
+    border-color: #38a169;
+    background-color: #f0fff4;
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.25);
+    transform: scale(1.02);
+}
+
+.citation-item.highlighted::before {
+    content: '✨';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #38a169;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.citation-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.citation-number {
+    background-color: #4299e1;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.citation-document {
+    font-weight: 600;
+    color: #2c5282;
+    font-size: 14px;
+}
+
+.citation-click-hint {
+    font-size: 10px;
+    color: #999;
+    background-color: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-left: auto;
+}
+
+.citation-text {
+    color: #4a5568;
+    font-style: italic;
+    line-height: 1.5;
+    border-left: 3px solid #e2e8f0;
+    padding-left: 12px;
+    transition: border-color 0.3s ease;
+}
+
+.citation-item.highlighted .citation-text {
+    border-left-color: #38a169;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .question-actions {
+        flex-direction: column;
+    }
+}

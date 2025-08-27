@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import FileUploader from './components/FileUploader';
-import DocumentSearch from './components/DocumentSearch';
-import QuestionAnswer from './components/QuestionAnswer';
-import IndexedDocuments from './components/IndexedDocuments';
+import { FileUploader } from './uploader/components/FileUploader';
+import { DocumentSearch } from './search/components/DocumentSearch';
+import { QuestionAnswer } from './qa/components/QuestionAnswer';
+import { IndexedDocuments } from './indexed-documents/components/IndexedDocuments';
+import './shared/styles/global.css';
 import './App.css';
 
 function App() {
@@ -25,7 +26,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🧠 Mini Asistente Q&A</h1>
+        <h1>Mini Asistente Q&A</h1>
         <p>Sube documentos, busca contenido y haz preguntas en lenguaje natural</p>
       </header>
 

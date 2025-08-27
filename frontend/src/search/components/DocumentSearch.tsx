@@ -1,59 +1,27 @@
-import React, { useState } from 'react';
-import { searchDocuments } from '../services/api';
+import React from 'react';
+import { useSearch } from '../hooks/useSearch';
+import '../styles/search.css';
 
-interface SearchResult {
-    text: string;
-    document_name: string;
-    relevance_score: number;
-}
+export const DocumentSearch: React.FC = () => {
+    const {
+        query,
+        setQuery,
+        results,
+        searching,
+        error,
+        hasSearched,
+        performSearch,
+        clearSearch
+    } = useSearch();
 
-interface SearchResponse {
-    query: string;
-    results: SearchResult[];
-    total_results: number;
-}
-
-const DocumentSearch: React.FC = () => {
-    const [query, setQuery] = useState('');
-    const [results, setResults] = useState<SearchResult[]>([]);
-    const [searching, setSearching] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [hasSearched, setHasSearched] = useState(false);
-
-    const handleSearch = async (e: React.FormEvent) => {
+    const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!query.trim()) {
-            setError('Ingresa una consulta de búsqueda');
-            return;
-        }
-
-        setSearching(true);
-        setError(null);
-        setHasSearched(true);
-
-        try {
-            const response: SearchResponse = await searchDocuments(query);
-            setResults(response.results);
-        } catch (err: any) {
-            console.error('Error searching:', err);
-            setError(err.message || 'Error al realizar la búsqueda');
-            setResults([]);
-        } finally {
-            setSearching(false);
-        }
-    };
-
-    const handleClear = () => {
-        setQuery('');
-        setResults([]);
-        setError(null);
-        setHasSearched(false);
+        performSearch(query);
     };
 
     return (
         <div className="document-search">
-            <h2>🔍 Buscar en Documentos</h2>
+            <h2>Buscar en Documentos</h2>
 
             <form onSubmit={handleSearch} className="search-form">
                 <div className="search-input-group">
@@ -74,11 +42,11 @@ const DocumentSearch: React.FC = () => {
                         {searching ? '⏳' : '🔍'}
                     </button>
 
-                    {(hasSearched || results.length > 0) && (
+                    {(hasSearched || results) && (
                         <button
                             type="button"
                             className="clear-search-button"
-                            onClick={handleClear}
+                            onClick={clearSearch}
                         >
                             ✖️
                         </button>
@@ -88,7 +56,7 @@ const DocumentSearch: React.FC = () => {
 
             {error && (
                 <div className="message error">
-                    <strong>❌ Error:</strong> {error}
+                    <strong>Error:</strong> {error}
                 </div>
             )}
 
@@ -99,19 +67,19 @@ const DocumentSearch: React.FC = () => {
                 </div>
             )}
 
-            {hasSearched && !searching && (
+            {hasSearched && !searching && results && (
                 <div className="search-results">
-                    {results.length > 0 ? (
+                    {results.results.length > 0 ? (
                         <>
                             <div className="results-header">
-                                <h3>Resultados encontrados ({results.length})</h3>
+                                <h3>Resultados encontrados ({results.results.length})</h3>
                             </div>
 
                             <div className="results-list">
-                                {results.map((result, index) => (
+                                {results.results.map((result, index) => (
                                     <div key={index} className="result-item">
                                         <div className="result-header">
-                                            <span className="document-name">📄 {result.document_name}</span>
+                                            <span className="document-name">{result.document_name}</span>
                                             <span className="relevance-score">
                                                 {Math.round(result.relevance_score * 100)}% relevancia
                                             </span>
@@ -125,7 +93,7 @@ const DocumentSearch: React.FC = () => {
                         </>
                     ) : (
                         <div className="no-results">
-                            <p>📭 No se encontraron resultados para "<strong>{query}</strong>"</p>
+                            <p>No se encontraron resultados para "<strong>{results.query}</strong>"</p>
                             <p>Intenta con otras palabras clave o términos más generales.</p>
                         </div>
                     )}
@@ -134,5 +102,3 @@ const DocumentSearch: React.FC = () => {
         </div>
     );
 };
-
-export default DocumentSearch;

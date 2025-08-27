@@ -1,6 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-// Tipos para las respuestas de la API
 export interface FileUploadResponse {
     message: string;
     files_processed: number;
@@ -35,7 +34,6 @@ export interface ErrorResponse {
     detail?: string;
 }
 
-// Función para manejar errores de la API
 const handleApiError = async (response: Response): Promise<never> => {
     let errorMessage = `Error ${response.status}: ${response.statusText}`;
 
@@ -53,7 +51,6 @@ const handleApiError = async (response: Response): Promise<never> => {
     throw new Error(errorMessage);
 };
 
-// Subir documentos para indexar
 export const uploadDocuments = async (files: FileList): Promise<FileUploadResponse> => {
     const formData = new FormData();
 
@@ -73,7 +70,6 @@ export const uploadDocuments = async (files: FileList): Promise<FileUploadRespon
 
         return await response.json();
     } catch (error) {
-        console.error('Upload error:', error);
         if (error instanceof Error) {
             throw error;
         }
@@ -81,7 +77,6 @@ export const uploadDocuments = async (files: FileList): Promise<FileUploadRespon
     }
 };
 
-// Buscar en documentos
 export const searchDocuments = async (query: string): Promise<SearchResponse> => {
     try {
         const encodedQuery = encodeURIComponent(query);
@@ -98,7 +93,6 @@ export const searchDocuments = async (query: string): Promise<SearchResponse> =>
 
         return await response.json();
     } catch (error) {
-        console.error('Search error:', error);
         if (error instanceof Error) {
             throw error;
         }
@@ -106,7 +100,6 @@ export const searchDocuments = async (query: string): Promise<SearchResponse> =>
     }
 };
 
-// Hacer pregunta en lenguaje natural
 export const askQuestion = async (question: string): Promise<AskResponse> => {
     try {
         const response = await fetch(`${API_BASE_URL}/ask`, {
@@ -123,7 +116,6 @@ export const askQuestion = async (question: string): Promise<AskResponse> => {
 
         return await response.json();
     } catch (error) {
-        console.error('Ask error:', error);
         if (error instanceof Error) {
             throw error;
         }
@@ -131,7 +123,6 @@ export const askQuestion = async (question: string): Promise<AskResponse> => {
     }
 };
 
-// Verificar estado del backend
 export const checkHealth = async (): Promise<{ status: string }> => {
     try {
         const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`, {
@@ -144,7 +135,6 @@ export const checkHealth = async (): Promise<{ status: string }> => {
 
         return await response.json();
     } catch (error) {
-        console.error('Health check error:', error);
         throw new Error('El backend no está disponible');
     }
 };

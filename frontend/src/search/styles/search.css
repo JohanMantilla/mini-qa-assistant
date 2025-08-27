@@ -1,0 +1,132 @@
+.document-search h2 {
+    margin-bottom: 20px;
+    color: #2c5282;
+}
+
+.search-form {
+    margin-bottom: 20px;
+}
+
+.search-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.search-button,
+.clear-search-button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.search-button {
+    background-color: #4299e1;
+    color: white;
+}
+
+.search-button:hover:not(:disabled) {
+    background-color: #3182ce;
+}
+
+.search-button:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+}
+
+.clear-search-button {
+    background-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.clear-search-button:hover {
+    background-color: #cbd5e0;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+}
+
+.results-header h3 {
+    color: #2c5282;
+    margin-bottom: 16px;
+}
+
+.results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.result-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 16px;
+    background-color: #f8f9fa;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.document-name {
+    font-weight: 600;
+    color: #2c5282;
+}
+
+.relevance-score {
+    font-size: 12px;
+    color: #666;
+    background-color: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 12px;
+}
+
+.result-text {
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .search-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
