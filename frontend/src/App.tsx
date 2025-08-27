@@ -13,14 +13,12 @@ function App() {
   const handleDocumentsUploaded = (files: string[]) => {
     setDocumentsIndexed(true);
     setIndexedFiles(files);
-    // Disparar actualización del componente IndexedDocuments
     setRefreshTrigger(prev => prev + 1);
   };
 
   const handleClearDocuments = () => {
     setDocumentsIndexed(false);
     setIndexedFiles([]);
-    // Disparar actualización del componente IndexedDocuments
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -40,7 +38,6 @@ function App() {
           />
         </div>
 
-        {/* Pasar refreshTrigger para forzar actualización */}
         <IndexedDocuments key={refreshTrigger} refreshTrigger={refreshTrigger} />
 
         {documentsIndexed && (
