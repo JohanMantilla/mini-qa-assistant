@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import FileUploader from './components/FileUploader';
+import DocumentSearch from './components/DocumentSearch';
+
 import './App.css';
 
 function App() {
@@ -34,7 +36,9 @@ function App() {
 
         {documentsIndexed && (
           <>
-
+            <div className="section">
+              <DocumentSearch />
+            </div>
           </>
         )}
       </main>
