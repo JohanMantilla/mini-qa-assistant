@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import FileUploader from './components/FileUploader';
 import DocumentSearch from './components/DocumentSearch';
+import QuestionAnswer from './components/QuestionAnswer';
 
 import './App.css';
 
@@ -38,6 +39,10 @@ function App() {
           <>
             <div className="section">
               <DocumentSearch />
+            </div>
+
+            <div className="section">
+              <QuestionAnswer />
             </div>
           </>
         )}
