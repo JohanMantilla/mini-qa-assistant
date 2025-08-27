@@ -1,3 +1,9 @@
+"""
+Servicio principal para manejo de documentos y búsqueda con BM25
+Ahora con persistencia simple en JSON
+"""
+import json
+import os
 from typing import List, Dict, Tuple
 from rank_bm25 import BM25Okapi
 import numpy as np
@@ -5,21 +11,21 @@ import re
 
 from app.utils.text_utils import clean_text, split_into_chunks, extract_sentences
 
-class DocumentService:
-    """Servicio para indexar y buscar en documentos usando BM25"""
-    
+class DocumentService:    
     def __init__(self):
         self.documents = {}  
         self.chunks = []  
         self.chunk_metadata = []  
         self.tokenized_chunks = []  
         self.bm25 = None  
+        self.index_file = "data/document_index.json"  
+        
+        os.makedirs(os.path.dirname(self.index_file), exist_ok=True)
+        self._load_index()
         
     def add_document(self, filename: str, text: str):
         cleaned_text = clean_text(text)
-        
         self.documents[filename] = cleaned_text
-
         doc_chunks = split_into_chunks(cleaned_text, chunk_size=300, overlap=100)
         
         for chunk in doc_chunks:
@@ -40,8 +46,49 @@ class DocumentService:
             return
         
         self.tokenized_chunks = [self._tokenize(chunk) for chunk in self.chunks]
-
         self.bm25 = BM25Okapi(self.tokenized_chunks, k1=1.2, b=0.75)
+        self._save_index()
+    
+    def _save_index(self):
+        try:
+            index_data = {
+                'documents': self.documents,
+                'chunks': self.chunks,
+                'chunk_metadata': self.chunk_metadata,
+                'tokenized_chunks': self.tokenized_chunks,
+                'timestamp': str(np.datetime64('now'))
+            }
+            
+            with open(self.index_file, 'w', encoding='utf-8') as f:
+                json.dump(index_data, f, ensure_ascii=False, indent=2)
+                
+            print(f"Índice guardado en {self.index_file}")
+            
+        except Exception as e:
+            print(f"Error guardando índice: {e}")
+    
+    def _load_index(self):
+        try:
+            if os.path.exists(self.index_file):
+                with open(self.index_file, 'r', encoding='utf-8') as f:
+                    index_data = json.load(f)
+                
+                self.documents = index_data.get('documents', {})
+                self.chunks = index_data.get('chunks', [])
+                self.chunk_metadata = index_data.get('chunk_metadata', [])
+                self.tokenized_chunks = index_data.get('tokenized_chunks', [])
+                
+                if self.tokenized_chunks:
+                    self.bm25 = BM25Okapi(self.tokenized_chunks, k1=1.2, b=0.75)
+                    print(f"Índice cargado desde {self.index_file} ({len(self.documents)} documentos)")
+                else:
+                    print("Índice cargado pero está vacío")
+            else:
+                print("No existe índice previo, empezando limpio")
+                
+        except Exception as e:
+            print(f"Error cargando índice: {e}")
+            self.clear_index()
     
     def search(self, query: str, top_k: int = 5, min_score: float = 0.25) -> List[Dict]:
         if not self.bm25 or not self.chunks:
@@ -72,6 +119,7 @@ class DocumentService:
             return "No encuentro esa información en los documentos cargados.", []
 
         question_tokens = set(self._tokenize(clean_text(question)))
+
         best_sentence = ""
         best_score = 0
         citations = []
@@ -117,6 +165,21 @@ class DocumentService:
         self.chunk_metadata.clear()
         self.tokenized_chunks.clear()
         self.bm25 = None
+        
+        if os.path.exists(self.index_file):
+            try:
+                os.remove(self.index_file)
+                print(f"Índice persistente eliminado: {self.index_file}")
+            except Exception as e:
+                print(f"Error eliminando índice: {e}")
+    
+    def get_index_info(self) -> Dict:
+        return {
+            'documents_count': len(self.documents),
+            'chunks_count': len(self.chunks),
+            'has_bm25_index': self.bm25 is not None,
+            'index_file_exists': os.path.exists(self.index_file),
+            'document_names': list(self.documents.keys())
+        }
 
-# Instancia global del servicio (singleton simple)
 document_service = DocumentService()

@@ -18,3 +18,4 @@ README.md
 tests/
 pytest_cache/
 *.egg-info/
+data/
