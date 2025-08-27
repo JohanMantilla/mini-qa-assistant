@@ -101,9 +101,10 @@ proyecto/
 ## 🧪 Testing
 
 ### Backend
-Pruebas unitarias implementadas con pytest:
+Pruebas unitarias implementadas con pytest, se deben hacer de manera local, instalando cada dependencia:
 ```bash
-cd backend
+cd backend 
+pip install -r requirements-test.txt 
 pip install -r requirements-test.txt
 python -m pytest tests/ -v
 ```
