@@ -4,27 +4,80 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.Python
+*.so
+
+# Distribución / empaquetado
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Entornos virtuales
 venv/
 env/
 .venv/
+.env
+ENV/
+env.bak/
+venv.bak/
 
-# Logs de Python
+# Logs
 *.log
-
-# Archivos de persistencia (excluir si no son de prueba)
-*.json
-*.pkl
-*.index
+logs/
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
 
-# IDE
+# IDE y editores
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+
+# OS específicos
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+
+# Datos de persistencia (permitir solo el índice de documentos)
+*.json
+*.pkl
+*.dat
+*.index
+
+# Permitir específicamente el índice de documentos
+!backend/data/document_index.json
+
+# Docker
+.dockerignore

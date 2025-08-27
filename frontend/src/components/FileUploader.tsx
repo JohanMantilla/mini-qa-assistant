@@ -25,6 +25,10 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     const [testingConnection, setTestingConnection] = useState(false);
     const [lastUploadTime, setLastUploadTime] = useState<number>(0);
 
+    // Nuevo estado: archivos seleccionados pero no procesados
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [readyToProcess, setReadyToProcess] = useState(false);
+
     const testBackendConnection = async () => {
         setTestingConnection(true);
         setError(null);
@@ -61,11 +65,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         return timeSinceLastUpload >= minInterval;
     };
 
-    const handleFiles = async (files: FileList) => {
-        setError(null);
-        setSuccess(null);
-
-        // 1. PRIMERO: Validar tipos de archivo (antes que cantidad)
+    const validateFiles = (files: FileList): { valid: boolean; error?: string } => {
+        // 1. Validar tipos de archivo (antes que cantidad)
         const invalidFiles: string[] = [];
 
         for (let i = 0; i < files.length; i++) {
@@ -76,35 +77,34 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 // Si MIME type falla, validar por extensión como fallback
                 const extension = '.' + file.name.split('.').pop()?.toLowerCase();
                 if (!['.txt', '.pdf'].includes(extension)) {
-                    invalidFiles.push(file.name); // Solo el nombre, sin tipo MIME
+                    invalidFiles.push(file.name);
                 }
             }
         }
 
         if (invalidFiles.length > 0) {
-            setError(`Formato no válido: ${invalidFiles.join(', ')}. Solo se permiten archivos .txt y .pdf`);
-            return;
+            return {
+                valid: false,
+                error: `Formato no válido: ${invalidFiles.join(', ')}. Solo se permiten archivos .txt y .pdf`
+            };
         }
 
-        // 2. Rate limiting - verificar tiempo entre uploads
-        if (!checkRateLimit()) {
-            const remainingTime = Math.ceil((10000 - (Date.now() - lastUploadTime)) / 1000);
-            setError(`Por favor espera ${remainingTime} segundos antes de subir nuevos archivos`);
-            return;
-        }
-
-        // 3. Validar número de archivos
+        // 2. Validar número de archivos
         if (files.length < 3) {
-            setError('Debe subir al menos 3 archivos');
-            return;
+            return {
+                valid: false,
+                error: 'Debe subir al menos 3 archivos'
+            };
         }
 
         if (files.length > 10) {
-            setError('No puede subir más de 10 archivos');
-            return;
+            return {
+                valid: false,
+                error: 'No puede subir más de 10 archivos'
+            };
         }
 
-        // 4. Validaciones adicionales de archivos válidos
+        // 3. Validaciones adicionales de archivos válidos
         const oversizedFiles: string[] = [];
         const emptyFiles: string[] = [];
 
@@ -124,22 +124,69 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         }
 
         if (oversizedFiles.length > 0) {
-            setError(`Archivos muy grandes: ${oversizedFiles.join(', ')}. Máximo 10MB por archivo`);
-            return;
+            return {
+                valid: false,
+                error: `Archivos muy grandes: ${oversizedFiles.join(', ')}. Máximo 10MB por archivo`
+            };
         }
 
         if (emptyFiles.length > 0) {
-            setError(`Archivos vacíos: ${emptyFiles.join(', ')}. Los archivos deben tener contenido`);
+            return {
+                valid: false,
+                error: `Archivos vacíos: ${emptyFiles.join(', ')}. Los archivos deben tener contenido`
+            };
+        }
+
+        return { valid: true };
+    };
+
+    const handleFiles = (files: FileList) => {
+        setError(null);
+        setSuccess(null);
+
+        const validation = validateFiles(files);
+        if (!validation.valid) {
+            setError(validation.error!);
+            return;
+        }
+
+        // Convertir FileList a Array y guardar
+        const filesArray = Array.from(files);
+        setSelectedFiles(filesArray);
+        setReadyToProcess(true);
+        setSuccess(`✅ ${files.length} archivo(s) seleccionado(s) y validado(s). Listo para procesar.`);
+    };
+
+    const processFiles = async () => {
+        if (!readyToProcess || selectedFiles.length === 0) {
+            return;
+        }
+
+        // Rate limiting - verificar tiempo entre uploads
+        if (!checkRateLimit()) {
+            const remainingTime = Math.ceil((10000 - (Date.now() - lastUploadTime)) / 1000);
+            setError(`Por favor espera ${remainingTime} segundos antes de procesar nuevos archivos`);
             return;
         }
 
         setUploading(true);
-        setLastUploadTime(Date.now()); // Actualizar tiempo del último upload
+        setLastUploadTime(Date.now());
 
         try {
-            const response: UploadResponse = await uploadDocuments(files);
+            // Convertir array de archivos a FileList-like para la API
+            const fileList = selectedFiles.reduce((acc, file, index) => {
+                acc[index] = file;
+                return acc;
+            }, {} as any);
+            fileList.length = selectedFiles.length;
+
+            const response: UploadResponse = await uploadDocuments(fileList);
             setSuccess(response.message);
             onDocumentsUploaded(response.files_list);
+
+            // Limpiar estado después del éxito
+            setSelectedFiles([]);
+            setReadyToProcess(false);
         } catch (err: any) {
             console.error('Error uploading files:', err);
             setError(err.message || 'Error al procesar los archivos');
@@ -148,6 +195,13 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         } finally {
             setUploading(false);
         }
+    };
+
+    const cancelSelection = () => {
+        setSelectedFiles([]);
+        setReadyToProcess(false);
+        setError(null);
+        setSuccess(null);
     };
 
     const handleDrag = useCallback((e: React.DragEvent) => {
@@ -179,6 +233,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     const handleClear = () => {
         setError(null);
         setSuccess(null);
+        setSelectedFiles([]);
+        setReadyToProcess(false);
         onClearDocuments();
     };
 
@@ -195,7 +251,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 </button>
             </div>
 
-            {indexedFiles.length === 0 ? (
+            {indexedFiles.length === 0 && !readyToProcess ? (
                 <div className="upload-area">
                     <div
                         className={`drop-zone ${dragActive ? 'drag-active' : ''}`}
@@ -214,18 +270,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                             style={{ display: 'none' }}
                         />
 
-                        {uploading ? (
-                            <div className="upload-status">
-                                <div className="spinner"></div>
-                                <p>Procesando archivos...</p>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="upload-icon">📤</div>
-                                <h3>Arrastra archivos aquí o haz clic para seleccionar</h3>
-                                <p>Sube entre 3 y 10 archivos (.txt o .pdf)</p>
-                            </>
-                        )}
+                        <>
+                            <div className="upload-icon">📤</div>
+                            <h3>Arrastra archivos aquí o haz clic para seleccionar</h3>
+                            <p>Selecciona entre 3 y 10 archivos (.txt o .pdf)</p>
+                        </>
                     </div>
 
                     {error && (
@@ -240,8 +289,53 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                         </div>
                     )}
                 </div>
+            ) : readyToProcess ? (
+                <div className="files-ready">
+                    <div className="message success">
+                        <strong>📋 Archivos seleccionados y validados:</strong>
+                    </div>
+
+                    <div className="selected-files-list">
+                        {selectedFiles.map((file, index) => (
+                            <div key={index} className="file-item">
+                                📄 {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="process-actions">
+                        <button
+                            className="process-button"
+                            onClick={processFiles}
+                            disabled={uploading}
+                        >
+                            {uploading ? '⏳ Procesando...' : '🚀 Procesar y Guardar'}
+                        </button>
+
+                        <button
+                            className="cancel-button"
+                            onClick={cancelSelection}
+                            disabled={uploading}
+                        >
+                            ❌ Cancelar
+                        </button>
+                    </div>
+
+                    {uploading && (
+                        <div className="upload-status">
+                            <div className="spinner"></div>
+                            <p>Procesando archivos y construyendo índice...</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="message error">
+                            <strong>❌ Error:</strong> {error}
+                        </div>
+                    )}
+                </div>
             ) : (
-                <div className="indexed-documents">
+                <div className="indexed-documents-summary">
                     <div className="message success">
                         <strong>✅ Documentos indexados:</strong>
                     </div>
