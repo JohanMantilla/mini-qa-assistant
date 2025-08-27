@@ -36,8 +36,6 @@ async def ingest_documents(
     for file in files:
         if not validate_file(file):
             invalid_files.append(file.filename)
-    
-
 
     if invalid_files:
         raise HTTPException(

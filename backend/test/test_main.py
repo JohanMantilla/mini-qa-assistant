@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
-# Crear cliente de prueba
 client = TestClient(app)
 
 class TestMainEndpoints:    
@@ -14,7 +13,6 @@ class TestMainEndpoints:
         assert "message" in data
         assert "endpoints" in data
         assert data["message"] == "Bienvenido al Mini Asistente Q&A"
-        
         endpoints = data["endpoints"]
         assert endpoints["ingest"] == "/api/ingest"
         assert endpoints["search"] == "/api/search?q=consulta"

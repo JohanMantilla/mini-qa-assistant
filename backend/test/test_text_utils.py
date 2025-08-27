@@ -8,7 +8,7 @@ class TestTextUtils:
         cleaned = text_utils.clean_text(text)
         assert "Hola" in cleaned
         assert "\n" not in cleaned
-        assert "¿" in cleaned  # símbolos permitidos
+        assert "¿" in cleaned  
         assert cleaned.startswith("Hola")
 
     def test_split_into_chunks_basic(self):

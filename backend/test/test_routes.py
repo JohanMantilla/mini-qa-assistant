@@ -23,7 +23,6 @@ class TestRootAndHealth:
         response = client.options("/")
         assert response.status_code in [200, 405]
 
-
 class TestSearchEndpoints:
     @pytest.fixture(autouse=True)
     def setup_service(self):

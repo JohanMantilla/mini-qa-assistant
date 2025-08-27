@@ -39,7 +39,6 @@ class TestFileUtils:
     def test_validate_file_size(self):
         small_file = UploadFile(filename="small.txt", file=io.BytesIO(b"a"*100))
         large_file = UploadFile(filename="large.txt", file=io.BytesIO(b"a"*15*1024*1024))
-        # Sobreescribimos size porque UploadFile no tiene size
         small_file.size = 100
         large_file.size = 15*1024*1024
         assert file_utils.validate_file_size(small_file, max_size_mb=10)

@@ -1,7 +1,3 @@
-"""
-Servicio principal para manejo de documentos y búsqueda con BM25
-Ahora con persistencia simple en JSON
-"""
 import json
 import os
 from typing import List, Dict, Tuple
