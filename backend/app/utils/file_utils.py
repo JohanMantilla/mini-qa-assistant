@@ -41,4 +41,24 @@ def validate_file(file: UploadFile) -> bool:
     return any(filename.endswith(ext) for ext in allowed_extensions)
 
 def validate_file_size(file: UploadFile, max_size_mb: int = 10) -> bool:
+    if hasattr(file, 'size') and file.size:
+        max_size_bytes = max_size_mb * 1024 * 1024
+        return file.size <= max_size_bytes
+    return True  
+
+
+def validate_file_content(content: bytes, filename: str) -> bool:
+    if len(content) == 0:
+        return False
+    
+    if filename.lower().endswith('.pdf'):
+        return content.startswith(b'%PDF-')
+    
+    if filename.lower().endswith('.txt'):
+        try:
+            content.decode('utf-8')
+            return True
+        except UnicodeDecodeError:
+            return False
+    
     return True

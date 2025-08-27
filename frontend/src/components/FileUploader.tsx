@@ -65,12 +65,35 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         setError(null);
         setSuccess(null);
 
-        if (!checkRateLimit()) {
-            const remainingTime = Math.ceil((10000 - (Date.now() - lastUploadTime)) / 1000);
-            setError(`⏰ Por favor espera ${remainingTime} segundos antes de subir nuevos archivos`);
+        // 1. PRIMERO: Validar tipos de archivo (antes que cantidad)
+        const invalidFiles: string[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            // Validar tipo MIME primero
+            if (!validateMimeType(file)) {
+                // Si MIME type falla, validar por extensión como fallback
+                const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+                if (!['.txt', '.pdf'].includes(extension)) {
+                    invalidFiles.push(file.name); // Solo el nombre, sin tipo MIME
+                }
+            }
+        }
+
+        if (invalidFiles.length > 0) {
+            setError(`Formato no válido: ${invalidFiles.join(', ')}. Solo se permiten archivos .txt y .pdf`);
             return;
         }
 
+        // 2. Rate limiting - verificar tiempo entre uploads
+        if (!checkRateLimit()) {
+            const remainingTime = Math.ceil((10000 - (Date.now() - lastUploadTime)) / 1000);
+            setError(`Por favor espera ${remainingTime} segundos antes de subir nuevos archivos`);
+            return;
+        }
+
+        // 3. Validar número de archivos
         if (files.length < 3) {
             setError('Debe subir al menos 3 archivos');
             return;
@@ -81,47 +104,37 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             return;
         }
 
-        const invalidFiles: string[] = [];
+        // 4. Validaciones adicionales de archivos válidos
         const oversizedFiles: string[] = [];
         const emptyFiles: string[] = [];
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
 
-            if (!validateMimeType(file)) {
-                const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-                if (!['.txt', '.pdf'].includes(extension)) {
-                    invalidFiles.push(`${file.name} (tipo: ${file.type || 'desconocido'})`);
-                }
-            }
-
+            // Validar tamaño de archivo (máx. 10MB)
             if (!validateFileSize(file)) {
                 const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
                 oversizedFiles.push(`${file.name} (${sizeMB}MB)`);
             }
 
+            // Validar que el archivo no esté vacío
             if (file.size === 0) {
                 emptyFiles.push(file.name);
             }
         }
 
-        if (invalidFiles.length > 0) {
-            setError(`❌ Formato no válido: ${invalidFiles.join(', ')}. Solo se permiten archivos .txt y .pdf`);
-            return;
-        }
-
         if (oversizedFiles.length > 0) {
-            setError(`📏 Archivos muy grandes: ${oversizedFiles.join(', ')}. Máximo 10MB por archivo`);
+            setError(`Archivos muy grandes: ${oversizedFiles.join(', ')}. Máximo 10MB por archivo`);
             return;
         }
 
         if (emptyFiles.length > 0) {
-            setError(`📭 Archivos vacíos: ${emptyFiles.join(', ')}. Los archivos deben tener contenido`);
+            setError(`Archivos vacíos: ${emptyFiles.join(', ')}. Los archivos deben tener contenido`);
             return;
         }
 
         setUploading(true);
-        setLastUploadTime(Date.now());
+        setLastUploadTime(Date.now()); // Actualizar tiempo del último upload
 
         try {
             const response: UploadResponse = await uploadDocuments(files);
@@ -130,6 +143,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         } catch (err: any) {
             console.error('Error uploading files:', err);
             setError(err.message || 'Error al procesar los archivos');
+            // Si falla, resetear el tiempo para permitir reintento inmediato
             setLastUploadTime(0);
         } finally {
             setUploading(false);
@@ -252,6 +266,5 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         </div>
     );
 };
-
 
 export default FileUploader;

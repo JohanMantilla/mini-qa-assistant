@@ -30,18 +30,31 @@ async def ingest_documents(
         )
     
     invalid_files = []
+    oversized_files = []
+    content_errors = []
+
     for file in files:
         if not validate_file(file):
             invalid_files.append(file.filename)
     
+
+
     if invalid_files:
         raise HTTPException(
-            status_code=400,
-            detail=f"Archivos con formato no permitido: {', '.join(invalid_files)}. Solo se aceptan archivos .txt y .pdf"
-        )
+        status_code=400,
+        detail=f"Archivos con formato no válido: {', '.join(invalid_files)}. Solo se aceptan .txt y .pdf")
+
+    if oversized_files:
+        raise HTTPException(
+        status_code=400,
+        detail=f"Archivos muy grandes (máx. 10MB): {', '.join(oversized_files)}")
+
+    if content_errors:
+        raise HTTPException(
+        status_code=400,
+        detail=f"Archivos con contenido inválido o corruptos: {', '.join(content_errors)}")
     
     document_service.clear_index()
-    
     processed_files = []
     errors = []
     
