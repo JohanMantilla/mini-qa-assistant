@@ -179,6 +179,9 @@ La aplicación permite:
 4. Obtener respuestas con citas clickeables del contenido original
 5. Ver el estado del índice en tiempo real
 
+![Demo de la app](https://i.imgur.com/7lgxXwV.gif)
+
+
 ---
 
 **Desarrollado con**: FastAPI, React, TypeScript, Docker, BM25, PyPDF2
