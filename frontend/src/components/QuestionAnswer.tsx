@@ -17,6 +17,7 @@ const QuestionAnswer: React.FC = () => {
     const [response, setResponse] = useState<AskResponse | null>(null);
     const [asking, setAsking] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [highlightedCitation, setHighlightedCitation] = useState<number | null>(null);
 
     const handleAsk = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,10 +42,15 @@ const QuestionAnswer: React.FC = () => {
         }
     };
 
+    const handleCitationClick = (index: number) => {
+        setHighlightedCitation(index === highlightedCitation ? null : index);
+    }
+
     const handleClear = () => {
         setQuestion('');
         setResponse(null);
         setError(null);
+        setHighlightedCitation(null);
     };
 
     return (
@@ -118,12 +124,18 @@ const QuestionAnswer: React.FC = () => {
                     {response.citations && response.citations.length > 0 && (
                         <div className="citations-display">
                             <h3>📚 Fuentes:</h3>
+                            <p className="citations-hint">💡 Haz clic en una cita para resaltarla</p>
                             <div className="citations-list">
                                 {response.citations.map((citation, index) => (
-                                    <div key={index} className="citation-item">
+                                    <div
+                                        key={index}
+                                        className={`citation-item ${highlightedCitation === index ? 'highlighted' : ''}`}
+                                        onClick={() => handleCitationClick(index)}
+                                    >
                                         <div className="citation-header">
                                             <span className="citation-number">#{index + 1}</span>
                                             <span className="citation-document">📄 {citation.document_name}</span>
+                                            <span className="citation-click-hint">👆 Clic para resaltar</span>
                                         </div>
                                         <div className="citation-text">
                                             "{citation.text}"
