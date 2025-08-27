@@ -26,10 +26,10 @@ Sistema de búsqueda y respuesta sobre documentos usando FastAPI + React + TypeS
 
 ## ⏱️ Tiempo Invertido
 
-**Total: 8 horas** distribuidas en:
-- Backend y lógica de búsqueda: 3.5 horas
-- Frontend y componentes: 3 horas
-- Docker, persistencia y refinamientos: 1.5 horas
+**Total: 14 horas** distribuidas en:
+- Backend y lógica de búsqueda: 6 horas
+- Frontend y componentes: 5 horas
+- Docker, persistencia, documentación y refinamientos: 3 horas
 
 ## 🛠️ Ejecución
 
