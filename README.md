@@ -1,4 +1,4 @@
-# 🧠 Mini Asistente Q&A - Prueba Técnica
+# 🧠 Mini Asistente Q&A
 
 Sistema de búsqueda y respuesta sobre documentos usando FastAPI + React + TypeScript.
 
